@@ -1,0 +1,37 @@
+version: "3"
+
+services:
+  subee-core-svc-app:
+      command: reflex -sr '\.go$|\.mod$' -- sh -c "go run cmd/main.go"
+      build:
+        dockerfile: Dockerfile
+        context: .
+      volumes:
+        - .:/app
+      depends_on:
+        - subee-core-svc-db
+        - subee-core-svc-redis
+      environment:
+        - DB_USER=root
+        - DB_PASSWORD=root
+        - DB_NAME=subee-core-db
+        - DB_HOST=subee-core-svc-db
+        - DB_PORT=5432
+        - HTTP_SERVER_PORT=3000
+        - CACHE_HOST=subee-core-svc-redis
+        - CACHE_PORT=6379
+        - SERVICE_NAME=subee-core-svc
+      ports:
+        - "3000:3000"
+  subee-core-svc-redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+  subee-core-svc-db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: 'root'
+      POSTGRES_PASSWORD: 'root'
+      POSTGRES_DB: 'subee-core-db'
+    ports:
+      - "5432:5432"
