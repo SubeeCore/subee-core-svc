@@ -8,7 +8,7 @@ import (
 	entities_user_v1 "github.com/subeecore/subee-core-svc/internal/entities/user/v1"
 )
 
-type CreateRequest struct {
+type CreateUserRequest struct {
 	ID       string `json:"$id"`
 	Email    string `json:"email"`
 	Username string `json:"name"`
@@ -17,7 +17,7 @@ type CreateRequest struct {
 func (h *Handler) Create(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	var req CreateRequest
+	var req CreateUserRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, pkg_http.NewHTTPResponse(http.StatusBadRequest, pkg_http.MessageBadRequestError, nil))
 	}
@@ -25,7 +25,7 @@ func (h *Handler) Create(c echo.Context) error {
 	_, err := h.service.CreateUser(ctx, &entities_user_v1.CreateUserRequest{
 		ExternalID: req.ID,
 		Email:      req.Email,
-		Username:   "coucou",
+		Username:   req.Username,
 	})
 	if err != nil {
 		return c.JSON(pkg_http.TranslateError(ctx, err))
