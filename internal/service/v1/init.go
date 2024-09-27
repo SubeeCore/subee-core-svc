@@ -2,6 +2,7 @@ package service_v1
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/subeecore/pkg/cache"
@@ -9,8 +10,17 @@ import (
 )
 
 const (
-	userCacheDuration = time.Hour * 24
+	userCacheDuration         = time.Hour * 24
+	subscriptionCacheDuration = time.Hour * 24
 )
+
+func generateSubscriptionCacheKeyByIDForUser(userID string, subscriptionID string) string {
+	return fmt.Sprintf("subee-core-svc:subscription:user_id:%v:subscription_id:%v", userID, subscriptionID)
+}
+
+func generateSubscriptionsCacheKeyForUser(userID string) string {
+	return fmt.Sprintf("subee-core-svc:subscription:user_id:%v", userID)
+}
 
 type Service struct {
 	store database_v1.Database

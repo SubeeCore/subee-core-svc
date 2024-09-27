@@ -10,6 +10,7 @@ import (
 	pkg_http "github.com/subeecore/pkg/http"
 
 	"github.com/subeecore/subee-core-svc/internal/handlers"
+	handlers_http_internal_subscriptions_v1 "github.com/subeecore/subee-core-svc/internal/handlers/http/internal/subscriptions/v1"
 	handlers_http_internal_users_v1 "github.com/subeecore/subee-core-svc/internal/handlers/http/internal/users/v1"
 	service_v1 "github.com/subeecore/subee-core-svc/internal/service/v1"
 )
@@ -34,6 +35,7 @@ func (s *httpServer) Setup(ctx context.Context) error {
 
 	// setup handlers
 	internalUsersV1Handlers := handlers_http_internal_users_v1.NewHandler(ctx, s.service)
+	internalSubscriptionsV1Handlers := handlers_http_internal_subscriptions_v1.NewHandler(ctx, s.service)
 
 	// setup middlewares
 	s.router.Use(middleware.Logger())
@@ -48,6 +50,14 @@ func (s *httpServer) Setup(ctx context.Context) error {
 	// users related endpoints
 	usersV1 := privateV1.Group("/users")
 	usersV1.POST("", internalUsersV1Handlers.Create)
+
+	// subscriptions related endpoints
+	subscriptionsV1 := privateV1.Group("/subscriptions")
+	subscriptionsV1.POST("", internalSubscriptionsV1Handlers.CreateSubscription)
+	subscriptionsV1.GET("/:user_id", internalSubscriptionsV1Handlers.FetchSubscriptions)
+	subscriptionsV1.GET("/:user_id/:subscription_id", internalSubscriptionsV1Handlers.GetSubscriptionByIDForUser)
+	subscriptionsV1.DELETE("/:user_id/:subscription_id/finish", internalSubscriptionsV1Handlers.FinishSubscription)
+	subscriptionsV1.DELETE("/:user_id/:subscription_id/delete", internalSubscriptionsV1Handlers.DeleteSubscription)
 
 	return nil
 }

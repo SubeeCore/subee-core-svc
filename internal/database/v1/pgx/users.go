@@ -9,10 +9,10 @@ import (
 	"github.com/subeecore/pkg/constants"
 	"github.com/subeecore/pkg/errors"
 
-	entities_user_v1 "github.com/subeecore/subee-core-svc/internal/entities/user/v1"
+	entities_users_v1 "github.com/subeecore/subee-core-svc/internal/entities/users/v1"
 )
 
-func (d *dbClient) CreateUser(ctx context.Context, req *entities_user_v1.CreateUserRequest) (*entities_user_v1.User, error) {
+func (d *dbClient) CreateUser(ctx context.Context, req *entities_users_v1.CreateUserRequest) (*entities_users_v1.User, error) {
 	userID := constants.GenerateDataPrefixWithULID(constants.User)
 	now := time.Now()
 
@@ -35,7 +35,7 @@ func (d *dbClient) CreateUser(ctx context.Context, req *entities_user_v1.CreateU
 		return nil, errors.NewInternalServerError(fmt.Sprintf("failed to create user: %v", err.Error()))
 	}
 
-	return &entities_user_v1.User{
+	return &entities_users_v1.User{
 		ID:         userID,
 		ExternalID: req.ExternalID,
 		Username:   req.Username,

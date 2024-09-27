@@ -5,7 +5,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	pkg_http "github.com/subeecore/pkg/http"
-	entities_user_v1 "github.com/subeecore/subee-core-svc/internal/entities/user/v1"
+
+	entities_users_v1 "github.com/subeecore/subee-core-svc/internal/entities/users/v1"
 )
 
 type CreateUserRequest struct {
@@ -22,7 +23,7 @@ func (h *Handler) Create(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, pkg_http.NewHTTPResponse(http.StatusBadRequest, pkg_http.MessageBadRequestError, nil))
 	}
 
-	_, err := h.service.CreateUser(ctx, &entities_user_v1.CreateUserRequest{
+	_, err := h.service.CreateUser(ctx, &entities_users_v1.CreateUserRequest{
 		ExternalID: req.ID,
 		Email:      req.Email,
 		Username:   req.Username,
@@ -31,5 +32,5 @@ func (h *Handler) Create(c echo.Context) error {
 		return c.JSON(pkg_http.TranslateError(ctx, err))
 	}
 
-	return c.JSON(http.StatusOK, pkg_http.NewHTTPResponse(http.StatusOK, pkg_http.MessageSuccess, nil))
+	return c.JSON(http.StatusCreated, pkg_http.NewHTTPResponse(http.StatusCreated, pkg_http.MessageSuccess, nil))
 }

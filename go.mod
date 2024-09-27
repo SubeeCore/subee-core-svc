@@ -9,11 +9,10 @@ require (
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/lib/pq v1.10.9
 	github.com/rs/zerolog v1.32.0
-	github.com/subeecore/pkg v0.0.1
+	github.com/subeecore/pkg v0.0.4
 )
 
 require (
-	github.com/alyxcore/pkg v0.0.12 // indirect
 	github.com/caarlos0/env/v10 v10.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
