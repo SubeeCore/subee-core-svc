@@ -10,6 +10,8 @@ import (
 	"github.com/subeecore/pkg/constants"
 	"github.com/subeecore/pkg/errors"
 
+	entities_payments_v1 "github.com/subeecore/subee-core-svc/internal/entities/payments/v1"
+	entities_recap_v1 "github.com/subeecore/subee-core-svc/internal/entities/recap/v1"
 	entities_subscriptions_v1 "github.com/subeecore/subee-core-svc/internal/entities/subscriptions/v1"
 )
 
@@ -147,6 +149,57 @@ func (d *dbClient) GetSubscriptionByID(ctx context.Context, userID string, subsc
 	}
 
 	return subscription, nil
+}
+func (d *dbClient) GetMonthlySubscriptionsRecap(ctx context.Context, userID string) (*entities_recap_v1.MonthlyRecap, error) {
+	rows, err := d.connection.DB.QueryContext(ctx, `
+		SELECT 
+			id,
+			user_id,
+			platform,
+			reccurence,
+			price,
+			started_at,
+			created_at,
+			updated_at,
+			finished_at
+		FROM 
+			subscriptions
+		WHERE 
+			user_id = $1 AND
+			finished_at < DATE_TRUNC('month', CURRENT_DATE) AND
+			started_at > (DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month - 1 day')
+	`, userID)
+	if err != nil {
+		log.Error().Err(err).
+			Str("user_id", userID).
+			Msgf("database.postgres.dbClient.GetMonthlySubscriptionsPrice: failed to get subscriptions: %v", err.Error())
+		return nil, errors.NewInternalServerError(fmt.Sprintf("database.postgres.dbClient.GetMonthlySubscriptionsPrice: failed to get subscriptions: %v", err.Error()))
+	}
+	defer rows.Close()
+
+	payments := make([]*entities_payments_v1.Payment, 0)
+	for rows.Next() {
+		payment := &entities_payments_v1.Payment{}
+
+		err := rows.Scan(
+			&payment.SubscriptionID,
+			&payment.Platform,
+			&payment.Price,
+		)
+		if err != nil {
+			log.Error().Err(err).
+				Str("user_id", userID).
+				Msgf("database.postgres.dbClient.GetMonthlySubscriptionsPrice: failed to scan payment: %v", err.Error())
+			return nil, errors.NewInternalServerError(fmt.Sprintf("database.postgres.dbClient.GetMonthlySubscriptionsPrice: failed to scan payment: %v", err.Error()))
+		}
+
+		payments = append(payments, payment)
+	}
+
+	return &entities_recap_v1.MonthlyRecap{
+		Price:    0,
+		Payments: payments,
+	}, nil
 }
 
 func (d *dbClient) FinishSubscription(ctx context.Context, userID string, subscriptionID string, finishedAt time.Time) error {
