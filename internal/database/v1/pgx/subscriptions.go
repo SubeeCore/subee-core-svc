@@ -35,11 +35,12 @@ func (d *dbClient) CreateSubscription(ctx context.Context, req *entities_subscri
 				reccurence,
 				price,
 				started_at,
-				created_at
+				created_at,
+				updated_at
 			) 
-			VALUES ($1, $2, $3, $4, $5, $6, $7)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		`,
-		subscriptionID, req.UserID, req.Platform, req.Reccurence, req.Price, date, now)
+		subscriptionID, req.UserID, req.Platform, req.Reccurence, req.Price, date, now, now)
 	if err != nil {
 		log.Error().Err(err).
 			Msgf("failed to create user subscription: %v", err.Error())
