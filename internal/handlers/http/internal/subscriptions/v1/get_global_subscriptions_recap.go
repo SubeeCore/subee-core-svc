@@ -13,9 +13,6 @@ type GetGlobalSubscriptionsRecapResponse struct {
 	Recap *entities_recap_v1.GlobalRecap `json:"recap"`
 }
 
-/*************  ✨ Codeium Command ⭐  *************/
-// GetGlobalSubscriptionsRecap returns the global recap of subscriptions for the given user.
-/******  574caca9-313c-4a23-8476-8fd0ff7f446b  *******/
 func (h *Handler) GetGlobalSubscriptionsRecap(c echo.Context) error {
 	ctx := c.Request().Context()
 

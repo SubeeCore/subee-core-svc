@@ -371,8 +371,27 @@ func groupByYear(allPayments []*entities_payments_v1.Payment_Light) (map[int][]*
 		year := payment.StartedAt.Year()
 		groupedByYear[year] = append(groupedByYear[year], &entities_recap_v1.MonthlyRecap_Light{
 			Month: payment.StartedAt.Month().String(),
+			Price: payment.Price,
 		})
 	}
+
+	cumulativeRecap := make(map[string]float64)
+
+	for _, payments := range groupedByYear {
+		for _, payment := range payments {
+			cumulativeRecap[payment.Month] += payment.Price
+		}
+	}
+
+	var finalRecap []*entities_recap_v1.MonthlyRecap_Light
+	for month, price := range cumulativeRecap {
+		finalRecap = append(finalRecap, &entities_recap_v1.MonthlyRecap_Light{
+			Price: price,
+			Month: month,
+		})
+	}
+
+	groupedByYear[2024] = finalRecap
 
 	return groupedByYear, nil
 }
