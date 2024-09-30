@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
+	entities_recap_v1 "github.com/subeecore/subee-core-svc/internal/entities/recap/v1"
 	entities_subscriptions_v1 "github.com/subeecore/subee-core-svc/internal/entities/subscriptions/v1"
 )
 
@@ -47,6 +48,37 @@ func (s *Service) GetSubscriptionByID(ctx context.Context, userID string, subscr
 	}
 
 	return subscription, nil
+}
+
+func (s *Service) GetMonthlySubscriptionsRecap(ctx context.Context, userID string) (*entities_recap_v1.MonthlyRecap, error) {
+	key := generateMonthlyRecapSubscriptionCacheKeyByID(userID)
+
+	cachedRecap, err := s.cache.Get(ctx, key)
+	if err == nil {
+		var recap *entities_recap_v1.MonthlyRecap
+		err = json.Unmarshal([]byte(cachedRecap), &recap)
+		if err != nil {
+			log.Error().Err(err).
+				Msg("service.v1.service.GetMonthlySubscriptionsRecap: unable to unmarshal recap")
+		} else {
+			return recap, nil
+		}
+	}
+
+	recap, err := s.store.GetMonthlySubscriptionsRecap(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	bytes, err := json.Marshal(recap)
+	if err != nil {
+		log.Error().Err(err).
+			Msg("service.v1.service.GetMonthlySubscriptionsRecap: unable to marshal recap")
+	} else {
+		s.cache.SetEx(ctx, key, bytes, subscriptionCacheDuration)
+	}
+
+	return recap, nil
 }
 
 func (s *Service) FetchSubscriptions(ctx context.Context, userID string) ([]*entities_subscriptions_v1.Subscription, error) {

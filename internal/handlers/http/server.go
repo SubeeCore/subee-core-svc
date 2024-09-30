@@ -55,8 +55,9 @@ func (s *httpServer) Setup(ctx context.Context) error {
 	subscriptionsV1 := privateV1.Group("/subscriptions")
 	subscriptionsV1.POST("/", internalSubscriptionsV1Handlers.CreateSubscription)
 	subscriptionsV1.GET("/:user_id", internalSubscriptionsV1Handlers.FetchSubscriptions)
+	subscriptionsV1.GET("/:user_id/recap", internalSubscriptionsV1Handlers.GetMonthlySubscriptionsRecap)
 	subscriptionsV1.GET("/:user_id/:subscription_id", internalSubscriptionsV1Handlers.GetSubscriptionByIDForUser)
-	subscriptionsV1.DELETE("/:user_id/:subscription_id/finish", internalSubscriptionsV1Handlers.FinishSubscription)
+	subscriptionsV1.PATCH("/:user_id/:subscription_id/finish", internalSubscriptionsV1Handlers.FinishSubscription)
 	subscriptionsV1.DELETE("/:user_id/:subscription_id/delete", internalSubscriptionsV1Handlers.DeleteSubscription)
 
 	return nil

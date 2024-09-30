@@ -18,6 +18,10 @@ func generateSubscriptionCacheKeyByIDForUser(userID string, subscriptionID strin
 	return fmt.Sprintf("subee-core-svc:subscription:user_id:%v:subscription_id:%v", userID, subscriptionID)
 }
 
+func generateMonthlyRecapSubscriptionCacheKeyByID(userID string) string {
+	return fmt.Sprintf("subee-core-svc:recap:user_id:%v", userID)
+}
+
 func generateSubscriptionsCacheKeyForUser(userID string) string {
 	return fmt.Sprintf("subee-core-svc:subscription:user_id:%v", userID)
 }
