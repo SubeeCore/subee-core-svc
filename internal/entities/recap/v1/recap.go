@@ -17,10 +17,6 @@ type MonthlyRecap_Light struct {
 	Month string  `json:"month"`
 }
 
-type YearlyRecap struct {
-	Year []*MonthlyRecap_Light `json:"year"`
-}
-
 type GlobalRecap struct {
-	GlobalRecap []*YearlyRecap `json:"global_recap"`
+	GlobalRecap map[int][]*MonthlyRecap_Light `json:"global_recap"`
 }
