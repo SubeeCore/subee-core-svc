@@ -128,7 +128,7 @@ func (d *dbClient) GetSubscriptionByID(ctx context.Context, userID string, subsc
 		FROM subscriptions
 		WHERE 
 			user_id = $1 AND 
-			game_id = $2
+			subscription_id = $2
 	`, userID, subscriptionID).Scan(
 		&subscription.ID,
 		&subscription.UserID,
