@@ -158,24 +158,20 @@ func (d *dbClient) GetSubscriptionByID(ctx context.Context, userID string, subsc
 
 	return subscription, nil
 }
+
 func (d *dbClient) GetMonthlySubscriptionsRecap(ctx context.Context, userID string) (*entities_recap_v1.MonthlyRecap, error) {
 	rows, err := d.connection.DB.QueryContext(ctx, `
 		SELECT 
 			id,
-			user_id,
 			platform,
 			reccurence,
 			price,
-			started_at,
-			created_at,
-			updated_at,
-			finished_at
+			started_at
 		FROM 
 			subscriptions
-		WHERE 
-			user_id = $1 AND
-			finished_at < DATE_TRUNC('month', CURRENT_DATE) AND
-			started_at > (DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month - 1 day')
+		WHERE
+			(started_at <= CURRENT_DATE AND finished_at IS NULL) AND 
+			user_id = 'user_01J8VPMWY85B2YSABRSPNHFKD2'
 	`, userID)
 	if err != nil {
 		log.Error().Err(err).
@@ -192,7 +188,9 @@ func (d *dbClient) GetMonthlySubscriptionsRecap(ctx context.Context, userID stri
 		err := rows.Scan(
 			&payment.SubscriptionID,
 			&payment.Platform,
+			&payment.Reccurence,
 			&payment.Price,
+			&payment.StartedAt,
 		)
 		if err != nil {
 			log.Error().Err(err).
@@ -204,8 +202,24 @@ func (d *dbClient) GetMonthlySubscriptionsRecap(ctx context.Context, userID stri
 		payments = append(payments, payment)
 	}
 
+	currentPayments, err := checkPayments(payments)
+	if err != nil {
+		log.Error().Err(err).
+			Str("user_id", userID).
+			Msgf("database.postgres.dbClient.GetMonthlySubscriptionsPrice: failed to check payments: %v", err.Error())
+		return nil, errors.NewInternalServerError(fmt.Sprintf("database.postgres.dbClient.GetMonthlySubscriptionsPrice: failed to check payments: %v", err.Error()))
+	}
+
+	price, err := getTotalPrice(currentPayments)
+	if err != nil {
+		log.Error().Err(err).
+			Str("user_id", userID).
+			Msgf("database.postgres.dbClient.GetMonthlySubscriptionsPrice: failed to get total price: %v", err.Error())
+		return nil, errors.NewInternalServerError(fmt.Sprintf("database.postgres.dbClient.GetMonthlySubscriptionsPrice: failed to get total price: %v", err.Error()))
+	}
+
 	return &entities_recap_v1.MonthlyRecap{
-		Price:    0,
+		Price:    price,
 		Payments: payments,
 	}, nil
 }
@@ -255,4 +269,31 @@ func (d *dbClient) DeleteSubscription(ctx context.Context, userID string, subscr
 	}
 
 	return nil
+}
+
+func checkPayments(allPayments []*entities_payments_v1.Payment) ([]*entities_payments_v1.Payment, error) {
+	payments := make([]*entities_payments_v1.Payment, 0)
+
+	for _, payment := range allPayments {
+		date := payment.StartedAt
+
+		for date.Month() <= time.Now().Month() && date.Year() <= time.Now().Year() {
+			if date.Month() == time.Now().Month() && date.Year() == time.Now().Year() {
+				payments = append(payments, payment)
+			}
+			date = date.Add(time.Hour * time.Duration(24*payment.Reccurence))
+		}
+	}
+
+	return payments, nil
+}
+
+func getTotalPrice(currentPayments []*entities_payments_v1.Payment) (float64, error) {
+	price := 0.0
+
+	for _, payment := range currentPayments {
+		price += payment.Price
+	}
+
+	return price, nil
 }
