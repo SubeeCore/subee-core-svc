@@ -372,6 +372,7 @@ func groupByYear(allPayments []*entities_payments_v1.Payment_Light) (map[int][]*
 		})
 	}
 
+	log.Info().Msgf("groupedByYear: %v\n", groupedByYear)
 	fmt.Printf("groupedByYear: %v\n", groupedByYear)
 
 	return groupedByYear, nil
