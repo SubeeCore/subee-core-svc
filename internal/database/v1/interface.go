@@ -2,7 +2,6 @@ package database_v1
 
 import (
 	"context"
-	"time"
 
 	entities_recap_v1 "github.com/subeecore/subee-core-svc/internal/entities/recap/v1"
 	entities_subscriptions_v1 "github.com/subeecore/subee-core-svc/internal/entities/subscriptions/v1"
@@ -19,6 +18,6 @@ type Database interface {
 	GetSubscriptionByID(ctx context.Context, userID string, subscriptionID string) (*entities_subscriptions_v1.Subscription, error)
 	GetMonthlySubscriptionsRecap(ctx context.Context, userID string) (*entities_recap_v1.MonthlyRecap, error)
 	FetchSubscriptions(ctx context.Context, userID string) ([]*entities_subscriptions_v1.Subscription, error)
-	FinishSubscription(ctx context.Context, userID string, subscriptionID string, finishedAt time.Time) error
+	FinishSubscription(ctx context.Context, userID string, subscriptionID string, finishedAt string) error
 	DeleteSubscription(ctx context.Context, userID string, subscriptionID string) error
 }
