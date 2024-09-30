@@ -35,9 +35,9 @@ func (d *dbClient) CreateSubscription(ctx context.Context, req *entities_subscri
 				reccurence,
 				price,
 				started_at,
-				created_at,
+				created_at
 			) 
-			VALUES ($1, $2, $3, $4, $5, $6, $7);
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
 		`,
 		subscriptionID, req.UserID, req.Platform, req.Reccurence, req.Price, date, now)
 	if err != nil {
