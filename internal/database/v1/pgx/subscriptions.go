@@ -67,6 +67,7 @@ func (d *dbClient) FetchSubscriptions(ctx context.Context, userID string) ([]*en
 			id,
 			user_id,
 			platform,
+			category,
 			reccurence,
 			price,
 			started_at,
