@@ -15,9 +15,9 @@ type Subscription struct {
 }
 
 type CreateSubscriptionRequest struct {
-	UserID     string    `json:"user_id"`
-	Platform   string    `json:"platform"`
-	Reccurence int       `json:"reccurence"`
-	Price      float64   `json:"price"`
-	StartedAt  time.Time `json:"started_at"`
+	UserID     string  `json:"user_id"`
+	Platform   string  `json:"platform"`
+	Reccurence int     `json:"reccurence"`
+	Price      float64 `json:"price"`
+	StartedAt  string  `json:"started_at"`
 }

@@ -19,7 +19,14 @@ func (d *dbClient) CreateSubscription(ctx context.Context, req *entities_subscri
 	subscriptionID := constants.GenerateDataPrefixWithULID(constants.Subscription)
 	now := time.Now()
 
-	_, err := d.connection.DB.ExecContext(ctx,
+	date, err := time.Parse(time.DateOnly, req.StartedAt)
+	if err != nil {
+		log.Error().Err(err).
+			Msgf("failed to parse user subscription started_at: %v", err.Error())
+		return nil, errors.NewInternalServerError(fmt.Sprintf("failed to parse user subscription started_at: %v", err.Error()))
+	}
+
+	_, err = d.connection.DB.ExecContext(ctx,
 		`INSERT INTO 
 			subscriptions (
 				id,
@@ -32,7 +39,7 @@ func (d *dbClient) CreateSubscription(ctx context.Context, req *entities_subscri
 			) 
 			VALUES ($1, $2, $3, $4, $5, $6, $7);
 		`,
-		subscriptionID, req.UserID, req.Platform, req.Reccurence, req.Price, req.StartedAt, now)
+		subscriptionID, req.UserID, req.Platform, req.Reccurence, req.Price, date, now)
 	if err != nil {
 		log.Error().Err(err).
 			Msgf("failed to create user subscription: %v", err.Error())
@@ -45,7 +52,7 @@ func (d *dbClient) CreateSubscription(ctx context.Context, req *entities_subscri
 		Platform:   req.Platform,
 		Reccurence: req.Reccurence,
 		Price:      req.Price,
-		StartedAt:  req.StartedAt,
+		StartedAt:  date,
 		CreatedAt:  now,
 		UpdatedAt:  now,
 	}, nil

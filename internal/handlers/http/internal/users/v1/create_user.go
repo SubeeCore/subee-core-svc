@@ -12,7 +12,7 @@ import (
 type CreateUserRequest struct {
 	ID       string `json:"$id"`
 	Email    string `json:"email"`
-	Username string `json:"name"`
+	Username string `json:"username"`
 }
 
 func (h *Handler) Create(c echo.Context) error {
