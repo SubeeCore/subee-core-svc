@@ -81,6 +81,15 @@ func (s *Service) GetMonthlySubscriptionsRecap(ctx context.Context, userID strin
 	return recap, nil
 }
 
+func (s *Service) GetGlobalSubscriptionsRecap(ctx context.Context, userID string) (*entities_recap_v1.GlobalRecap, error) {
+	_, err := s.store.GetMonthlySubscriptionsRecap(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
 func (s *Service) FetchSubscriptions(ctx context.Context, userID string) ([]*entities_subscriptions_v1.Subscription, error) {
 	key := generateSubscriptionsCacheKeyForUser(userID)
 

@@ -17,6 +17,7 @@ type SubeeCoreService interface {
 	CreateSubscription(ctx context.Context, req *entities_subscriptions_v1.CreateSubscriptionRequest) (*entities_subscriptions_v1.Subscription, error)
 	GetSubscriptionByID(ctx context.Context, userID string, subscriptionID string) (*entities_subscriptions_v1.Subscription, error)
 	GetMonthlySubscriptionsRecap(ctx context.Context, userID string) (*entities_recap_v1.MonthlyRecap, error)
+	GetGlobalSubscriptionsRecap(ctx context.Context, userID string) (*entities_recap_v1.GlobalRecap, error)
 	FetchSubscriptions(ctx context.Context, userID string) ([]*entities_subscriptions_v1.Subscription, error)
 	FinishSubscription(ctx context.Context, userID string, subscriptionID string, finishedAt time.Time) error
 	DeleteSubscription(ctx context.Context, userID string, subscriptionID string) error
