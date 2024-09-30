@@ -22,8 +22,8 @@ func (d *dbClient) CreateSubscription(ctx context.Context, req *entities_subscri
 	date, err := time.Parse(time.DateOnly, req.StartedAt)
 	if err != nil {
 		log.Error().Err(err).
-			Msgf("failed to parse user subscription started_at: %v", err.Error())
-		return nil, errors.NewInternalServerError(fmt.Sprintf("failed to parse user subscription started_at: %v", err.Error()))
+			Msgf("database.postgres.dbClient.CreateSubscription: failed to parse user subscription started_at: %v", err.Error())
+		return nil, errors.NewInternalServerError(fmt.Sprintf("database.postgres.dbClient.CreateSubscription: failed to parse user subscription started_at: %v", err.Error()))
 	}
 
 	_, err = d.connection.DB.ExecContext(ctx,
@@ -43,8 +43,8 @@ func (d *dbClient) CreateSubscription(ctx context.Context, req *entities_subscri
 		subscriptionID, req.UserID, req.Platform, req.Reccurence, req.Price, date, now, now)
 	if err != nil {
 		log.Error().Err(err).
-			Msgf("failed to create user subscription: %v", err.Error())
-		return nil, errors.NewInternalServerError(fmt.Sprintf("failed to create user subscription: %v", err.Error()))
+			Msgf("database.postgres.dbClient.CreateSubscription: failed to create user subscription: %v", err.Error())
+		return nil, errors.NewInternalServerError(fmt.Sprintf("database.postgres.dbClient.CreateSubscription: failed to create user subscription: %v", err.Error()))
 	}
 
 	return &entities_subscriptions_v1.Subscription{
@@ -210,8 +210,15 @@ func (d *dbClient) GetMonthlySubscriptionsRecap(ctx context.Context, userID stri
 	}, nil
 }
 
-func (d *dbClient) FinishSubscription(ctx context.Context, userID string, subscriptionID string, finishedAt time.Time) error {
-	_, err := d.connection.DB.ExecContext(ctx, `
+func (d *dbClient) FinishSubscription(ctx context.Context, userID string, subscriptionID string, finishedAt string) error {
+	date, err := time.Parse(time.DateOnly, finishedAt)
+	if err != nil {
+		log.Error().Err(err).
+			Msgf("database.postgres.dbClient.FinishSubscription: failed to parse finished_at: %v", err.Error())
+		return errors.NewInternalServerError(fmt.Sprintf("database.postgres.dbClient.FinishSubscription: failed to parse finished_at: %v", err.Error()))
+	}
+
+	_, err = d.connection.DB.ExecContext(ctx, `
 		UPDATE 
 			subscriptions
 		SET 
@@ -219,7 +226,7 @@ func (d *dbClient) FinishSubscription(ctx context.Context, userID string, subscr
 		WHERE 
 			id = $1 AND 
 			user_id = $2
-	`, subscriptionID, userID, finishedAt)
+	`, subscriptionID, userID, date)
 	if err != nil {
 		log.Error().Err(err).
 			Str("subscription_id", subscriptionID).

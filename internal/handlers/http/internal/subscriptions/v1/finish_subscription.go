@@ -2,7 +2,6 @@ package handlers_http_internal_subscriptions_v1
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -10,7 +9,7 @@ import (
 )
 
 type FinishSubscriptionRequest struct {
-	FinishedAt time.Time `json:"finished_at"`
+	FinishedAt string `json:"finished_at"`
 }
 
 func (h *Handler) FinishSubscription(c echo.Context) error {

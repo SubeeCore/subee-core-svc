@@ -3,7 +3,6 @@ package service_v1
 import (
 	"context"
 	"encoding/json"
-	"time"
 
 	"github.com/rs/zerolog/log"
 
@@ -81,7 +80,7 @@ func (s *Service) FetchSubscriptions(ctx context.Context, userID string) ([]*ent
 	return subscriptions, nil
 }
 
-func (s *Service) FinishSubscription(ctx context.Context, userID string, subscriptionID string, finishedAt time.Time) error {
+func (s *Service) FinishSubscription(ctx context.Context, userID string, subscriptionID string, finishedAt string) error {
 	err := s.store.FinishSubscription(ctx, userID, subscriptionID, finishedAt)
 	if err != nil {
 		return err
