@@ -7,6 +7,20 @@ import (
 
 type MonthlyRecap struct {
 	Price      float64                                 `json:"price"`
+	Month      string                                  `json:"month"`
 	Payments   []*entities_payments_v1.Payment         `json:"payments"`
 	Categories *entities_categories_v1.CategoriesRecap `json:"categories"`
+}
+
+type MonthlyRecap_Light struct {
+	Price float64 `json:"price"`
+	Month string  `json:"month"`
+}
+
+type YearlyRecap struct {
+	Year []*MonthlyRecap_Light `json:"year"`
+}
+
+type GlobalRecap struct {
+	GlobalRecap []*YearlyRecap `json:"global_recap"`
 }

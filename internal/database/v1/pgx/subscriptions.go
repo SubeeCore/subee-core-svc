@@ -241,6 +241,53 @@ func (d *dbClient) GetMonthlySubscriptionsRecap(ctx context.Context, userID stri
 	}, nil
 }
 
+func (d *dbClient) GetGlobalSubscriptionsRecap(ctx context.Context, userID string) (*entities_recap_v1.GlobalRecap, error) {
+	rows, err := d.connection.DB.QueryContext(ctx, `
+		SELECT 
+			price,
+			started_at
+		FROM 
+			subscriptions
+		WHERE
+			user_id = $1
+	`, userID)
+	if err != nil {
+		log.Error().Err(err).
+			Str("user_id", userID).
+			Msgf("database.postgres.dbClient.GetGlobalSubscriptionsRecap: failed to get subscriptions: %v", err.Error())
+		return nil, errors.NewInternalServerError(fmt.Sprintf("database.postgres.dbClient.GetGlobalSubscriptionsRecap: failed to get subscriptions: %v", err.Error()))
+	}
+	defer rows.Close()
+
+	payments := make([]*entities_payments_v1.Payment_Light, 0)
+	for rows.Next() {
+		payment := &entities_payments_v1.Payment_Light{}
+
+		err := rows.Scan(
+			&payment.Price,
+			&payment.StartedAt,
+		)
+		if err != nil {
+			log.Error().Err(err).
+				Str("user_id", userID).
+				Msgf("database.postgres.dbClient.GetGlobalSubscriptionsRecap: failed to scan payment: %v", err.Error())
+			return nil, errors.NewInternalServerError(fmt.Sprintf("database.postgres.dbClient.GetGlobalSubscriptionsRecap: failed to scan payment: %v", err.Error()))
+		}
+
+		payments = append(payments, payment)
+	}
+
+	_, err = groupByYear(payments)
+	if err != nil {
+		log.Error().Err(err).
+			Str("user_id", userID).
+			Msgf("database.postgres.dbClient.GetGlobalSubscriptionsRecap: failed to group by year: %v", err.Error())
+		return nil, errors.NewInternalServerError(fmt.Sprintf("database.postgres.dbClient.GetGlobalSubscriptionsRecap: failed to group by year: %v", err.Error()))
+	}
+
+	return nil, nil
+}
+
 func (d *dbClient) FinishSubscription(ctx context.Context, userID string, subscriptionID string, finishedAt string) error {
 	date, err := time.Parse(time.DateOnly, finishedAt)
 	if err != nil {
@@ -313,6 +360,21 @@ func getTotalPrice(currentPayments []*entities_payments_v1.Payment) (float64, er
 	}
 
 	return price, nil
+}
+
+func groupByYear(allPayments []*entities_payments_v1.Payment_Light) (map[int][]*entities_recap_v1.MonthlyRecap_Light, error) {
+	groupedByYear := make(map[int][]*entities_recap_v1.MonthlyRecap_Light)
+
+	for _, payment := range allPayments {
+		year := payment.StartedAt.Year()
+		groupedByYear[year] = append(groupedByYear[year], &entities_recap_v1.MonthlyRecap_Light{
+			Month: payment.StartedAt.Month().String(),
+		})
+	}
+
+	fmt.Printf("groupedByYear: %v\n", groupedByYear)
+
+	return groupedByYear, nil
 }
 
 func getCategoriesPercentage(allPayments []*entities_payments_v1.Payment) (*entities_categories_v1.CategoriesRecap, error) {
