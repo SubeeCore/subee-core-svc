@@ -171,7 +171,7 @@ func (d *dbClient) GetMonthlySubscriptionsRecap(ctx context.Context, userID stri
 			subscriptions
 		WHERE
 			(started_at <= CURRENT_DATE AND finished_at IS NULL) AND 
-			user_id = 'user_01J8VPMWY85B2YSABRSPNHFKD2'
+			user_id = $1
 	`, userID)
 	if err != nil {
 		log.Error().Err(err).
