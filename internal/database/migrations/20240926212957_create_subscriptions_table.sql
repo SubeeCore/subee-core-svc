@@ -4,6 +4,7 @@ CREATE TABLE subscriptions (
     id              VARCHAR(40)         PRIMARY KEY NOT NULL,
     user_id         VARCHAR(40)         NOT NULL,
     platform        VARCHAR(255)        NOT NULL,
+    category        VARCHAR(255)        NOT NULL,
     reccurence      INTEGER             NOT NULL,
     price           DOUBLE PRECISION    NOT NULL,
     started_at      TIMESTAMP(6)        NOT NULL,

@@ -10,6 +10,7 @@ import (
 	"github.com/subeecore/pkg/constants"
 	"github.com/subeecore/pkg/errors"
 
+	entities_categories_v1 "github.com/subeecore/subee-core-svc/internal/entities/categories/v1"
 	entities_payments_v1 "github.com/subeecore/subee-core-svc/internal/entities/payments/v1"
 	entities_recap_v1 "github.com/subeecore/subee-core-svc/internal/entities/recap/v1"
 	entities_subscriptions_v1 "github.com/subeecore/subee-core-svc/internal/entities/subscriptions/v1"
@@ -32,15 +33,16 @@ func (d *dbClient) CreateSubscription(ctx context.Context, req *entities_subscri
 				id,
 				user_id,
 				platform,
+				category,
 				reccurence,
 				price,
 				started_at,
 				created_at,
 				updated_at
 			) 
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		`,
-		subscriptionID, req.UserID, req.Platform, req.Reccurence, req.Price, date, now, now)
+		subscriptionID, req.UserID, req.Platform, req.Category, req.Reccurence, req.Price, date, now, now)
 	if err != nil {
 		log.Error().Err(err).
 			Msgf("database.postgres.dbClient.CreateSubscription: failed to create user subscription: %v", err.Error())
@@ -92,6 +94,7 @@ func (d *dbClient) FetchSubscriptions(ctx context.Context, userID string) ([]*en
 			&subscription.ID,
 			&subscription.UserID,
 			&subscription.Platform,
+			&subscription.Category,
 			&subscription.Reccurence,
 			&subscription.Price,
 			&subscription.StartedAt,
@@ -120,6 +123,7 @@ func (d *dbClient) GetSubscriptionByID(ctx context.Context, userID string, subsc
 			id,
 			user_id,
 			platform,
+			category,
 			reccurence,
 			price,
 			started_at,
@@ -134,6 +138,7 @@ func (d *dbClient) GetSubscriptionByID(ctx context.Context, userID string, subsc
 		&subscription.ID,
 		&subscription.UserID,
 		&subscription.Platform,
+		&subscription.Category,
 		&subscription.Reccurence,
 		&subscription.Price,
 		&subscription.StartedAt,
@@ -164,6 +169,7 @@ func (d *dbClient) GetMonthlySubscriptionsRecap(ctx context.Context, userID stri
 		SELECT 
 			id,
 			platform,
+			category,
 			reccurence,
 			price,
 			started_at
@@ -188,6 +194,7 @@ func (d *dbClient) GetMonthlySubscriptionsRecap(ctx context.Context, userID stri
 		err := rows.Scan(
 			&payment.SubscriptionID,
 			&payment.Platform,
+			&payment.Category,
 			&payment.Reccurence,
 			&payment.Price,
 			&payment.StartedAt,
@@ -218,9 +225,18 @@ func (d *dbClient) GetMonthlySubscriptionsRecap(ctx context.Context, userID stri
 		return nil, errors.NewInternalServerError(fmt.Sprintf("database.postgres.dbClient.GetMonthlySubscriptionsPrice: failed to get total price: %v", err.Error()))
 	}
 
+	categories, err := getCategoriesPercentage(payments)
+	if err != nil {
+		log.Error().Err(err).
+			Str("user_id", userID).
+			Msgf("database.postgres.dbClient.GetMonthlySubscriptionsPrice: failed to get categories: %v", err.Error())
+		return nil, errors.NewInternalServerError(fmt.Sprintf("database.postgres.dbClient.GetMonthlySubscriptionsPrice: failed to get categories: %v", err.Error()))
+	}
+
 	return &entities_recap_v1.MonthlyRecap{
-		Price:    price,
-		Payments: payments,
+		Price:      price,
+		Payments:   payments,
+		Categories: categories,
 	}, nil
 }
 
@@ -296,4 +312,30 @@ func getTotalPrice(currentPayments []*entities_payments_v1.Payment) (float64, er
 	}
 
 	return price, nil
+}
+
+func getCategoriesPercentage(allPayments []*entities_payments_v1.Payment) (*entities_categories_v1.CategoriesRecap, error) {
+	billsCategoriesLength := 0
+	entertainmentCategoriesLength := 0
+
+	for _, payment := range allPayments {
+		if payment.Category == "bills" {
+			billsCategoriesLength++
+		} else if payment.Category == "entertainment" {
+			entertainmentCategoriesLength++
+		}
+	}
+
+	return &entities_categories_v1.CategoriesRecap{
+		Categories: []*entities_categories_v1.CategoryRecap{
+			{
+				Name:       "bills",
+				Percentage: fmt.Sprintf("%.2f", float64(billsCategoriesLength)/float64(len(allPayments))*100),
+			},
+			{
+				Name:       "entertainment",
+				Percentage: fmt.Sprintf("%.2f", float64(entertainmentCategoriesLength)/float64(len(allPayments))*100),
+			},
+		},
+	}, nil
 }
