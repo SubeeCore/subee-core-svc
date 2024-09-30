@@ -6,8 +6,16 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	pkg_http "github.com/subeecore/pkg/http"
+	entities_recap_v1 "github.com/subeecore/subee-core-svc/internal/entities/recap/v1"
 )
 
+type GetGlobalSubscriptionsRecapResponse struct {
+	Recap *entities_recap_v1.GlobalRecap `json:"recap"`
+}
+
+/*************  ✨ Codeium Command ⭐  *************/
+// GetGlobalSubscriptionsRecap returns the global recap of subscriptions for the given user.
+/******  574caca9-313c-4a23-8476-8fd0ff7f446b  *******/
 func (h *Handler) GetGlobalSubscriptionsRecap(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -17,10 +25,12 @@ func (h *Handler) GetGlobalSubscriptionsRecap(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, pkg_http.NewHTTPResponse(http.StatusBadRequest, pkg_http.MessageBadRequestError, nil))
 	}
 
-	_, err := h.service.GetGlobalSubscriptionsRecap(ctx, userID)
+	recap, err := h.service.GetGlobalSubscriptionsRecap(ctx, userID)
 	if err != nil {
 		return c.JSON(pkg_http.TranslateError(ctx, err))
 	}
 
-	return c.JSON(http.StatusOK, pkg_http.NewHTTPResponse(http.StatusOK, pkg_http.MessageSuccess, nil))
+	return c.JSON(http.StatusOK, pkg_http.NewHTTPResponse(http.StatusOK, pkg_http.MessageSuccess, &GetGlobalSubscriptionsRecapResponse{
+		Recap: recap,
+	}))
 }

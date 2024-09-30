@@ -82,12 +82,12 @@ func (s *Service) GetMonthlySubscriptionsRecap(ctx context.Context, userID strin
 }
 
 func (s *Service) GetGlobalSubscriptionsRecap(ctx context.Context, userID string) (*entities_recap_v1.GlobalRecap, error) {
-	_, err := s.store.GetMonthlySubscriptionsRecap(ctx, userID)
+	recap, err := s.store.GetGlobalSubscriptionsRecap(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	return nil, nil
+	return recap, nil
 }
 
 func (s *Service) FetchSubscriptions(ctx context.Context, userID string) ([]*entities_subscriptions_v1.Subscription, error) {

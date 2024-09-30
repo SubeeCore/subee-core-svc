@@ -277,7 +277,7 @@ func (d *dbClient) GetGlobalSubscriptionsRecap(ctx context.Context, userID strin
 		payments = append(payments, payment)
 	}
 
-	_, err = groupByYear(payments)
+	groupedByYear, err := groupByYear(payments)
 	if err != nil {
 		log.Error().Err(err).
 			Str("user_id", userID).
@@ -285,7 +285,9 @@ func (d *dbClient) GetGlobalSubscriptionsRecap(ctx context.Context, userID strin
 		return nil, errors.NewInternalServerError(fmt.Sprintf("database.postgres.dbClient.GetGlobalSubscriptionsRecap: failed to group by year: %v", err.Error()))
 	}
 
-	return nil, nil
+	return &entities_recap_v1.GlobalRecap{
+		GlobalRecap: groupedByYear,
+	}, nil
 }
 
 func (d *dbClient) FinishSubscription(ctx context.Context, userID string, subscriptionID string, finishedAt string) error {
@@ -371,12 +373,6 @@ func groupByYear(allPayments []*entities_payments_v1.Payment_Light) (map[int][]*
 			Month: payment.StartedAt.Month().String(),
 		})
 	}
-
-	log.Error().Msgf("groupedByYear: %v\n", groupedByYear)
-	log.Info().Msgf("groupedByYear: %v\n", groupedByYear)
-	fmt.Printf("groupedByYear: %v\n", groupedByYear)
-
-	return nil, fmt.Errorf("groupedByYear: %v\n", groupedByYear)
 
 	return groupedByYear, nil
 }
