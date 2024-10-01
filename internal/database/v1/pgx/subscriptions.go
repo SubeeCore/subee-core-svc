@@ -364,22 +364,18 @@ func getTotalPrice(currentPayments []*entities_payments_v1.Payment) (float64, er
 	return price, nil
 }
 
-func groupByYear(allPayments []*entities_payments_v1.Payment_Light) (map[int]map[string]float64, error) {
-	groupedByYear := make(map[int]map[string]float64)
+func groupByYear(allPayments []*entities_payments_v1.Payment_Light) (map[int][]float64, error) {
+	groupedByYear := make(map[int][]float64)
 
 	for _, payment := range allPayments {
 		year := payment.StartedAt.Year()
-		month := payment.StartedAt.Month().String()
+		month := payment.StartedAt.Month()
 
 		if _, ok := groupedByYear[year]; !ok {
-			groupedByYear[year] = make(map[string]float64)
+			groupedByYear[year] = make([]float64, 12)
 		}
 
-		if _, ok := groupedByYear[year][month]; !ok {
-			groupedByYear[year][month] = 0.0
-		}
-
-		groupedByYear[year][month] += payment.Price
+		groupedByYear[year][month-1] += payment.Price
 	}
 
 	return groupedByYear, nil
