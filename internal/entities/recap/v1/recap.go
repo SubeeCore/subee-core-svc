@@ -18,5 +18,5 @@ type MonthlyRecap_Light struct {
 }
 
 type GlobalRecap struct {
-	GlobalRecap map[int][]float64 `json:"global_recap"`
+	GlobalRecap map[int]map[string]float64 `json:"global_recap"`
 }

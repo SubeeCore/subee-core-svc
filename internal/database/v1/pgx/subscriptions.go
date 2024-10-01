@@ -364,28 +364,25 @@ func getTotalPrice(currentPayments []*entities_payments_v1.Payment) (float64, er
 	return price, nil
 }
 
-func groupByYear(allPayments []*entities_payments_v1.Payment_Light) (map[int][]float64, error) {
-	groupedByYear := make(map[int][]*entities_recap_v1.MonthlyRecap_Light)
+func groupByYear(allPayments []*entities_payments_v1.Payment_Light) (map[int]map[string]float64, error) {
+	groupedByYear := make(map[int]map[string]float64)
 
 	for _, payment := range allPayments {
 		year := payment.StartedAt.Year()
-		groupedByYear[year] = append(groupedByYear[year], &entities_recap_v1.MonthlyRecap_Light{
-			Month: payment.StartedAt.Month().String(),
-			Price: payment.Price,
-		})
-	}
+		month := payment.StartedAt.Month().String()
 
-	finalResult := make(map[int][]float64)
-
-	for year, payments := range groupedByYear {
-		price := 0.0
-		for _, payment := range payments {
-			price += payment.Price
+		if _, ok := groupedByYear[year]; !ok {
+			groupedByYear[year] = make(map[string]float64)
 		}
-		finalResult[year] = append(finalResult[year], price)
+
+		if _, ok := groupedByYear[year][month]; !ok {
+			groupedByYear[year][month] = 0.0
+		}
+
+		groupedByYear[year][month] += payment.Price
 	}
 
-	return finalResult, nil
+	return groupedByYear, nil
 }
 
 func getCategoriesPercentage(allPayments []*entities_payments_v1.Payment) (*entities_categories_v1.CategoriesRecap, error) {
